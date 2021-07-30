@@ -1,17 +1,17 @@
-# __package_name__
+# typeorm-cache
 
-<!-- [![NPM version](https://img.shields.io/npm/v/@zcong/__package_name__.svg?style=flat)](https://npmjs.com/package/@zcong/__package_name__) -->
-<!-- [![NPM downloads](https://img.shields.io/npm/dm/@zcong/__package_name__.svg?style=flat)](https://npmjs.com/package/@zcong/__package_name__) -->
-<!-- [![codecov](https://codecov.io/gh/zcong1993/__package_name__/branch/master/graph/badge.svg)](https://codecov.io/gh/zcong1993/__package_name__) -->
+<!-- [![NPM version](https://img.shields.io/npm/v/@zcong/typeorm-cache.svg?style=flat)](https://npmjs.com/package/@zcong/typeorm-cache) -->
+<!-- [![NPM downloads](https://img.shields.io/npm/dm/@zcong/typeorm-cache.svg?style=flat)](https://npmjs.com/package/@zcong/typeorm-cache) -->
+<!-- [![codecov](https://codecov.io/gh/zcong1993/typeorm-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/zcong1993/typeorm-cache) -->
 
 > my cool project
 
 ## Install
 
 ```bash
-$ yarn add @zcong/__package_name__
+$ yarn add @zcong/typeorm-cache
 # or npm
-$ npm i @zcong/__package_name__ --save
+$ npm i @zcong/typeorm-cache --save
 ```
 
 ## License
