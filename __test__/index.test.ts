@@ -41,8 +41,8 @@ const setupData = async (conn: Connection): Promise<Student> => {
   const cardId = `card-${Date.now()}`
   await getRepository(conn).insert({
     cardId,
-    firstName: 'firstName',
-    lastName: 'lastName',
+    firstName: `firstName-${Date.now()}`,
+    lastName: `lastName-${Date.now()}`,
     age: 18,
   })
 
@@ -150,6 +150,7 @@ it('deleteByPk', async () => {
   const cw = new CacheWrapper(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
+    compositeFields: [['lastName', 'firstName']],
     expiryDeviation: 0.04,
   })
 
@@ -160,13 +161,35 @@ it('deleteByPk', async () => {
   await cw.cacheFindByPk(expectRes.studentId)
   await cw.cacheFindByPk(expectRes.studentId)
 
+  await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+    lastName: expectRes.lastName,
+    firstName: expectRes.firstName,
+  })
+
+  await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+    lastName: expectRes.lastName,
+    firstName: expectRes.firstName,
+  })
+
   await cw.deleteByPk(expectRes.studentId)
 
   expect(await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)).toBeNull()
   expect(await cw.cacheFindByPk(expectRes.studentId)).toBeNull()
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
+  ).toBeNull()
 
   expect(await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)).toBeNull()
   expect(await cw.cacheFindByPk(expectRes.studentId)).toBeNull()
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
+  ).toBeNull()
 
   await cw.deleteByPk(10000)
 })
@@ -177,6 +200,7 @@ it('deleteCache', async () => {
   const cw = new CacheWrapper(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
+    compositeFields: [['lastName', 'firstName']],
     expiryDeviation: 0.04,
   })
 
@@ -185,13 +209,19 @@ it('deleteCache', async () => {
   await repeatCall(10, async () => {
     await cw.cacheFindByPk(expectRes.studentId)
   })
-
   expect(await redis.dbsize()).toBe(1)
 
   await repeatCall(10, async () => {
     await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
   })
   expect(await redis.dbsize()).toBe(2)
+
+  const resp = await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+    lastName: expectRes.lastName,
+    firstName: expectRes.firstName,
+  })
+  expect(resp).toMatchObject(expectRes)
+  expect(await redis.dbsize()).toBe(3)
 
   await cw.deleteCache(expectRes)
 
@@ -204,13 +234,22 @@ it('option.disable', async () => {
   const cw = new CacheWrapper(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
+    compositeFields: [['firstName', 'lastName']],
     expiryDeviation: 0.04,
     disable: true,
   })
 
   expect(await cw.cacheFindByPk(expectRes.studentId)).toMatchObject(expectRes)
+
   expect(
     await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
+  ).toMatchObject(expectRes)
+
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
   ).toMatchObject(expectRes)
 
   expect(await redis.dbsize()).toBe(0)
@@ -219,23 +258,47 @@ it('option.disable', async () => {
   await cw.cacheUpdateByPk(expectRes)
 
   expect(await cw.cacheFindByPk(expectRes.studentId)).toMatchObject(expectRes)
+
   expect(
     await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
+  ).toMatchObject(expectRes)
+
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
   ).toMatchObject(expectRes)
 
   expectRes.cardId = 'update-test-02'
   await cw.cacheUpdateByPk(expectRes)
 
   expect(await cw.cacheFindByPk(expectRes.studentId)).toMatchObject(expectRes)
+
   expect(
     await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
+  ).toMatchObject(expectRes)
+
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
   ).toMatchObject(expectRes)
 
   await cw.deleteByPk(expectRes.studentId)
 
   expect(await cw.cacheFindByPk(expectRes.studentId)).toBeUndefined()
+
   expect(
     await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
+  ).toBeUndefined()
+
+  expect(
+    await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
+      lastName: expectRes.lastName,
+      firstName: expectRes.firstName,
+    })
   ).toBeUndefined()
 
   await cw.deleteCache(expectRes)
@@ -257,4 +320,43 @@ it('fixOption', () => {
   o.expiryDeviation = 2
   fixOption(o)
   expect(o.expiryDeviation).toBe(1)
+})
+
+it('cacheFindByCompositeFields', async () => {
+  const cache = new RedisCache({ redis, prefix: 'typeorm' })
+  const expectRes = await setupData(conn)
+  const cw = new CacheWrapper(getRepository(conn), cache, {
+    expire: 60,
+    uniqueFields: ['cardId'],
+    compositeFields: [['lastName', 'firstName']],
+    expiryDeviation: 0.04,
+  })
+
+  await repeatCall(10, async () => {
+    const resp = await cw.cacheFindByCompositeFields(
+      ['firstName', 'lastName'],
+      {
+        firstName: expectRes.firstName,
+        lastName: expectRes.lastName,
+      }
+    )
+    expect(resp).toMatchObject(expectRes)
+  })
+
+  await repeatCall(10, async () => {
+    const resp = await cw.cacheFindByCompositeFields(
+      ['lastName', 'firstName'],
+      {
+        lastName: expectRes.lastName,
+        firstName: expectRes.firstName,
+      }
+    )
+    expect(resp).toMatchObject(expectRes)
+  })
+
+  await expect(() =>
+    cw.cacheFindByCompositeFields(['studentId'], {
+      studentId: expectRes.studentId,
+    })
+  ).rejects.toThrow()
 })

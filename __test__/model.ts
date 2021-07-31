@@ -1,6 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  PrimaryColumn,
+  Index,
+} from 'typeorm'
 
 @Entity()
+@Index(['firstName', 'lastName'], { unique: true })
 export class Student {
   @PrimaryGeneratedColumn()
   studentId: number
