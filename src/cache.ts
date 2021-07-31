@@ -7,6 +7,8 @@ import { aroundExpire, toString } from './utils'
 const cacheSafeGapBetweenIndexAndPrimary = 5
 const d = debug('typeorm-cache')
 
+type PK = string | number | Date
+
 export interface Option<T> {
   expire: number
   uniqueFields?: (keyof T)[]
@@ -77,7 +79,7 @@ export class CacheWrapper<T> {
    * @param id pk value
    * @returns
    */
-  async cacheFindByPk(id: string | number) {
+  async cacheFindByPk(id: PK) {
     if (this.option.disable) {
       return this.repository.findOne(id)
     }
@@ -144,7 +146,7 @@ export class CacheWrapper<T> {
    * @param id
    * @returns
    */
-  async deleteByPk(id: string | number) {
+  async deleteByPk(id: PK) {
     if (this.option.disable) {
       return this.repository.delete(id)
     }
