@@ -2,6 +2,7 @@ import type { Repository } from 'typeorm'
 import debug from 'debug'
 import { Singleflight } from '@zcong/singleflight'
 import { Cacher } from '@zcong/node-redis-cache'
+import { aroundExpire, toString } from './utils'
 
 const cacheSafeGapBetweenIndexAndPrimary = 5
 const d = debug('typeorm-cache')
@@ -41,12 +42,6 @@ export function fixOption<T>(option: Option<T>) {
   if (option.expiryDeviation > 1) {
     option.expiryDeviation = 1
   }
-}
-
-function aroundExpire(expire: number, expiryDeviation: number) {
-  return Math.floor(
-    expire * (1 - expiryDeviation + 2 * expiryDeviation * Math.random())
-  )
 }
 
 export class CacheWrapper<T> {
@@ -116,7 +111,7 @@ export class CacheWrapper<T> {
       return this.repository.findOne({ [field]: id })
     }
 
-    const key = this.buildKey(field as string, id as any)
+    const key = this.buildKey(field, id)
 
     return this.findBySubCache(
       key,
@@ -183,7 +178,7 @@ export class CacheWrapper<T> {
     const delKeys: string[] = [this.buildKey(this.pk, pkVal)]
 
     this.option.uniqueFields.forEach((f) => {
-      delKeys.push(this.buildKey(f as string, (record as any)[f]))
+      delKeys.push(this.buildKey(f, record[f]))
     })
 
     this.option.compositeFields.forEach((fs) => {
@@ -277,12 +272,12 @@ export class CacheWrapper<T> {
 
   /**
    * build redis cache key
-   * {cacherPrefix}:${tableName}:${columnName}:${columnValue}
+   * {cacherPrefix}:${tableName}:${columnNames}:${columnValues}
    * @param args
    * @returns
    */
-  private buildKey(...args: (string | number)[]) {
-    return [this.repository.metadata.tableName, ...args].join(':')
+  private buildKey(...args: any[]) {
+    return [this.repository.metadata.tableName, ...args].map(toString).join(':')
   }
 
   private normalizeCompositeFields(fields: (keyof T)[]) {
@@ -295,11 +290,10 @@ export class CacheWrapper<T> {
     query: Required<Pick<T, K[number]>>
   ) {
     // build cache key
-    const keys: string[] = [...fields.map((f) => f.toString())]
+    const keys: any[] = [...fields.map((f) => f.toString())]
     // fields is sorted
     for (const f of fields) {
-      // todo: strict toString
-      keys.push(query[f] as any as string)
+      keys.push(toString(query[f]))
     }
 
     return keys
