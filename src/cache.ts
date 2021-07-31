@@ -118,51 +118,11 @@ export class CacheWrapper<T> {
 
     const key = this.buildKey(field as string, id as any)
 
-    return this.sf.do(`${key}-outer`, async () => {
-      const [val, isNotFoundPlaceHolder] = await this.cache.get(key, 'raw')
-
-      if (isNotFoundPlaceHolder) {
-        d(
-          `cacheFindByUniqueKey hit not found placeholder, field: ${field} id: ${id}`
-        )
-        return null
-      }
-
-      if (val) {
-        d(
-          `cacheFindByUniqueKey found pk in cache, field: ${field} id: ${id}, pk ${this.pk}: ${val}`
-        )
-        return this.cacheFindByPk(val)
-      }
-
-      let record: T = null
-      await this.cache.cacheFn(
-        key,
-        async () => {
-          d(`cacheFindByUniqueKey call db, field: ${field} id: ${id}`)
-          record = await this.repository.findOne({ [field]: id })
-          if (!record) {
-            // rewrite record to null
-            record = null
-            return null
-          }
-
-          await this.cache.set(
-            this.buildKey(this.pk, this.getPkVal(record)),
-            record,
-            this.aroundExpire2(
-              this.option.expire + cacheSafeGapBetweenIndexAndPrimary
-            )
-          )
-
-          return this.getPkVal(record)
-        },
-        this.aroundExpire2(this.option.expire),
-        'raw'
-      )
-
-      return record
-    })
+    return this.findBySubCache(
+      key,
+      () => this.repository.findOne({ [field]: id }),
+      `field: ${field} id: ${id}`
+    )
   }
 
   /**
