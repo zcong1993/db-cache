@@ -44,7 +44,7 @@ export class Student {
 const redis = new Redis()
 const cache = new RedisCache({ redis, prefix: 'typeorm' })
 
-const student = new CacheWrapper(StudentRepository, cache, {
+const student = new TypeormCache(StudentRepository, cache, {
   disable: false,
   expire: 60, // cache expire seconds
   uniqueFields: ['cardId'], // cacheFindByUniqueKey method fields allowlist, filed must be unique

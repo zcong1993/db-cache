@@ -1,7 +1,7 @@
 import { createConnection, Connection } from 'typeorm'
 import Redis from 'ioredis'
 import { RedisCache } from '@zcong/node-redis-cache'
-import { CacheWrapper, fixOption, Option } from '../src'
+import { TypeormCache, fixOption, Option } from '../src'
 import { MultiPrimaryTest, Student } from './model'
 
 const DATABASE_URL =
@@ -59,7 +59,7 @@ it('invalid primaryColumns length model', () => {
 
   expect(
     () =>
-      new CacheWrapper(conn.getRepository(MultiPrimaryTest), cache, {
+      new TypeormCache(conn.getRepository(MultiPrimaryTest), cache, {
         expire: 50,
         expiryDeviation: 0.04,
       })
@@ -69,7 +69,7 @@ it('invalid primaryColumns length model', () => {
 it('cacheFindByPk', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 50,
     expiryDeviation: 0.04,
   })
@@ -88,7 +88,7 @@ it('cacheFindByPk', async () => {
 it('cacheFindByUniqueKey', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     expiryDeviation: 0.04,
@@ -112,7 +112,7 @@ it('cacheFindByUniqueKey', async () => {
 it('cacheUpdateByPk', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     expiryDeviation: 0.04,
@@ -147,7 +147,7 @@ it('cacheUpdateByPk', async () => {
 it('deleteByPk', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     compositeFields: [['lastName', 'firstName']],
@@ -197,7 +197,7 @@ it('deleteByPk', async () => {
 it('deleteCache', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     compositeFields: [['lastName', 'firstName']],
@@ -231,7 +231,7 @@ it('deleteCache', async () => {
 it('option.disable', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     compositeFields: [['firstName', 'lastName']],
@@ -325,7 +325,7 @@ it('fixOption', () => {
 it('cacheFindByCompositeFields', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new CacheWrapper(getRepository(conn), cache, {
+  const cw = new TypeormCache(getRepository(conn), cache, {
     expire: 60,
     uniqueFields: ['cardId'],
     compositeFields: [['lastName', 'firstName']],

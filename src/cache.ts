@@ -46,7 +46,7 @@ export function fixOption<T>(option: Option<T>) {
   }
 }
 
-export class CacheWrapper<T> {
+export class TypeormCache<T> {
   private readonly sf = new Singleflight()
   private aroundExpire2: (expire: number) => number
   private pk: string
@@ -166,7 +166,7 @@ export class CacheWrapper<T> {
 
   /**
    * clear record cache,
-   * can be used before you update or delete record but not use CacheWrapper's methods
+   * can be used before you update or delete record but not use TypeormCache's methods
    * @param record record with full fields
    * @returns
    */
