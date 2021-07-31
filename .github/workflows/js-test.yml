@@ -16,6 +16,18 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      redis:
+        image: redis:latest
+        ports:
+        - 6379:6379
+      mysql:
+        image: mysql:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: test
+          MYSQL_ROOT_PASSWORD: root
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
