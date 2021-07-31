@@ -20,7 +20,7 @@ export interface Option<T> {
   expiryDeviation?: number
 }
 
-function fixOption<T>(option: Option<T>) {
+export function fixOption<T>(option: Option<T>) {
   if (!option.uniqueFields) {
     option.uniqueFields = []
   }
@@ -119,6 +119,8 @@ export class CacheWrapper<T> {
           d(`cacheFindByUniqueKey call db, field: ${field} id: ${id}`)
           record = await this.repository.findOne({ [field]: id })
           if (!record) {
+            // rewrite record to null
+            record = null
             return null
           }
 
@@ -165,7 +167,7 @@ export class CacheWrapper<T> {
     const resp = await this.repository.delete(id)
 
     d(`deleteByPk delete doc pk ${this.pk}: ${this.getPkVal(record)}`)
-    this.deleteCache(record)
+    await this.deleteCache(record)
 
     return resp
   }
