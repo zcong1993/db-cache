@@ -66,6 +66,11 @@ export class CacheWrapper<T> {
       aroundExpire(expire, option.expiryDeviation)
   }
 
+  /**
+   * find one by pk with cache
+   * @param id pk value
+   * @returns
+   */
   async cacheFindByPk(id: string | number) {
     if (this.option.disable) {
       return this.repository.findOne(id)
@@ -84,6 +89,13 @@ export class CacheWrapper<T> {
     )
   }
 
+  /**
+   * find one by unique field with cache,
+   * will throw if field not in option.uniqueFields
+   * @param field field name
+   * @param id field value
+   * @returns
+   */
   async cacheFindByUniqueKey<K extends keyof T>(field: K, id: T[K]) {
     if (!this.option.uniqueFields.includes(field)) {
       throw new Error('invalid field')
@@ -142,6 +154,12 @@ export class CacheWrapper<T> {
     })
   }
 
+  /**
+   * update record by pk will clear record cache.
+   * note: never update record base on cached data
+   * @param record record with full fields
+   * @returns
+   */
   async cacheUpdateByPk(record: T) {
     if (this.option.disable) {
       return this.repository.update(this.getPkVal(record), record)
@@ -154,6 +172,12 @@ export class CacheWrapper<T> {
     return resp
   }
 
+  /**
+   * delete record by pk, will clear record cache
+   * note: this method call repository.delete so it is not soft delete
+   * @param id
+   * @returns
+   */
   async deleteByPk(id: string | number) {
     if (this.option.disable) {
       return this.repository.delete(id)
@@ -172,6 +196,12 @@ export class CacheWrapper<T> {
     return resp
   }
 
+  /**
+   * clear record cache,
+   * can be used before you update or delete record but not use CacheWrapper's methods
+   * @param record record with full fields
+   * @returns
+   */
   async deleteCache(record: T) {
     if (this.option.disable) {
       return
@@ -197,6 +227,12 @@ export class CacheWrapper<T> {
     return (record as any)[this.pk]
   }
 
+  /**
+   * build redis cache key
+   * {cacherPrefix}:${tableName}:${columnName}:${columnValue}
+   * @param args
+   * @returns
+   */
   private buildKey(...args: (string | number)[]) {
     return [this.repository.metadata.tableName, ...args].join(':')
   }
