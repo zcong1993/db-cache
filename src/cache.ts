@@ -9,6 +9,7 @@ const d = debug('typeorm-cache')
 export interface Option<T> {
   expire: number
   uniqueFields?: (keyof T)[]
+  compositeFields?: (keyof T)[][]
   disable?: boolean
   /**
    * @default 0.05
@@ -23,6 +24,10 @@ export interface Option<T> {
 export function fixOption<T>(option: Option<T>) {
   if (!option.uniqueFields) {
     option.uniqueFields = []
+  }
+
+  if (!option.compositeFields) {
+    option.compositeFields = []
   }
 
   if (!option.expiryDeviation) {
@@ -48,6 +53,7 @@ export class CacheWrapper<T> {
   private readonly sf = new Singleflight()
   private aroundExpire2: (expire: number) => number
   private pk: string
+  private compositeFieldsSet = new Set<string>()
 
   constructor(
     private readonly repository: Repository<T>,
@@ -64,6 +70,11 @@ export class CacheWrapper<T> {
     fixOption(this.option)
     this.aroundExpire2 = (expire: number) =>
       aroundExpire(expire, option.expiryDeviation)
+
+    for (const c of this.option.compositeFields) {
+      // option.compositeFields is sorted after here
+      this.compositeFieldsSet.add(this.normalizeCompositeFields(c))
+    }
   }
 
   /**
@@ -215,12 +226,89 @@ export class CacheWrapper<T> {
       delKeys.push(this.buildKey(f as string, (record as any)[f]))
     })
 
+    this.option.compositeFields.forEach((fs) => {
+      delKeys.push(this.buildKey(...this.buildCompositeKeys(fs, record as any)))
+    })
+
     d(
       `delteCache delete doc cache, pk ${this.pk}: ${pkVal}, deleted cacheKeys`,
       delKeys
     )
 
     await this.cache.delete(...delKeys)
+  }
+
+  async cacheFindByCompositeFields<K extends (keyof T)[]>(
+    fields: K,
+    query: Required<Pick<T, K[number]>>
+  ) {
+    const c = this.normalizeCompositeFields(fields)
+    if (!this.compositeFieldsSet.has(c)) {
+      throw new Error('invalid composite field')
+    }
+
+    if (this.option.disable) {
+      return this.repository.findOne(query)
+    }
+
+    const keys = this.buildCompositeKeys(fields, query)
+    const key = this.buildKey(...keys)
+
+    return this.findBySubCache(
+      key,
+      () => this.repository.findOne(query),
+      `fields: ${keys.toString()}`
+    )
+  }
+
+  private async findBySubCache(
+    cacheKey: string,
+    fn: () => Promise<T>,
+    debugFields: string
+  ) {
+    return this.sf.do(`${cacheKey}-outer`, async () => {
+      const [val, isNotFoundPlaceHolder] = await this.cache.get(cacheKey, 'raw')
+
+      if (isNotFoundPlaceHolder) {
+        d(`findByReferenceCache hit not found placeholder, ${debugFields}`)
+        return null
+      }
+
+      if (val) {
+        d(
+          `findByReferenceCache found pk in cache, ${debugFields}, pk ${this.pk}: ${val}`
+        )
+        return this.cacheFindByPk(val)
+      }
+
+      let record: T = null
+      await this.cache.cacheFn(
+        cacheKey,
+        async () => {
+          d(`findByReferenceCache call db, ${debugFields}`)
+          record = await fn()
+          if (!record) {
+            // rewrite record to null
+            record = null
+            return null
+          }
+
+          await this.cache.set(
+            this.buildKey(this.pk, this.getPkVal(record)),
+            record,
+            this.aroundExpire2(
+              this.option.expire + cacheSafeGapBetweenIndexAndPrimary
+            )
+          )
+
+          return this.getPkVal(record)
+        },
+        this.aroundExpire2(this.option.expire),
+        'raw'
+      )
+
+      return record
+    })
   }
 
   private getPkVal(record: T) {
@@ -235,5 +323,25 @@ export class CacheWrapper<T> {
    */
   private buildKey(...args: (string | number)[]) {
     return [this.repository.metadata.tableName, ...args].join(':')
+  }
+
+  private normalizeCompositeFields(fields: (keyof T)[]) {
+    fields.sort((a, b) => a.toString().localeCompare(b.toString()))
+    return fields.join(',')
+  }
+
+  private buildCompositeKeys<K extends (keyof T)[]>(
+    fields: K,
+    query: Required<Pick<T, K[number]>>
+  ) {
+    // build cache key
+    const keys: string[] = [...fields.map((f) => f.toString())]
+    // fields is sorted
+    for (const f of fields) {
+      // todo: strict toString
+      keys.push(query[f] as any as string)
+    }
+
+    return keys
   }
 }
