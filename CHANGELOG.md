@@ -1,3 +1,13 @@
+# [0.3.0](https://github.com/zcong1993/typeorm-cache/compare/v0.2.0...v0.3.0) (2021-07-31)
+
+### chore
+
+- rename export class name ([4199e5d](https://github.com/zcong1993/typeorm-cache/commit/4199e5de0d315359560be8bb0d0f40103bebe49e))
+
+### BREAKING CHANGES
+
+- rename CacheWrapper to TypeormCache
+
 # [0.2.0](https://github.com/zcong1993/typeorm-cache/compare/v0.1.1...v0.2.0) (2021-07-31)
 
 ### Features
