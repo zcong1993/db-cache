@@ -52,7 +52,7 @@
     ]
   },
   "dependencies": {
-    "@zcong/node-redis-cache": "^0.6.0",
+    "@zcong/node-redis-cache": "^0.7.0",
     "@zcong/singleflight": "^0.3.0",
     "debug": "^4.3.2",
     "lodash": "^4.17.21"
