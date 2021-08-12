@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/zcong1993/typeorm-cache/compare/v0.3.0...v0.3.1) (2021-08-12)
+
+
+### Bug Fixes
+
+* bump deps and update ci configs ([81396ff](https://github.com/zcong1993/typeorm-cache/commit/81396ffa18c939d7e7da30f0a594bf65abfa619f))
+
+
+
 # [0.3.0](https://github.com/zcong1993/typeorm-cache/compare/v0.2.0...v0.3.0) (2021-07-31)
 
 ### chore
