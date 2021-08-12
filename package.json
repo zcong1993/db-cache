@@ -16,27 +16,29 @@
     "jest:cov": "jest --coverage --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build",
     "prepare": "husky install",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "release": "node ./scripts/release.js",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path ."
   },
   "types": "./dist/index.d.ts",
   "author": "zcong1993",
   "license": "MIT",
   "devDependencies": {
     "@types/debug": "^4.1.7",
-    "@types/ioredis": "^4.26.6",
+    "@types/ioredis": "^4.26.7",
     "@types/jest": "^27.0.0",
-    "@types/lodash": "^4.14.171",
-    "@types/node": "^16.4.8",
-    "@typescript-eslint/eslint-plugin": "^4.28.5",
-    "@typescript-eslint/parser": "^4.28.5",
+    "@types/lodash": "^4.14.172",
+    "@types/node": "^16.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.29.1",
+    "@typescript-eslint/parser": "^4.29.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-import": "^2.24.0",
     "husky": "^7.0.1",
-    "ioredis": "^4.27.6",
+    "ioredis": "^4.27.7",
     "jest": "^27.0.6",
-    "lint-staged": "^11.1.1",
-    "mysql2": "^2.2.5",
+    "lint-staged": "^11.1.2",
+    "mysql2": "^2.3.0",
     "prettier": "^2.3.2",
     "ts-jest": "^27.0.4",
     "typeorm": "^0.2.36",
@@ -46,13 +48,10 @@
     "preset": "ts-jest"
   },
   "lint-staged": {
-    "*.{js,json,ts}": [
-      "yarn format",
-      "git add ."
-    ]
+    "*.{js,json,ts}": "prettier --write"
   },
   "dependencies": {
-    "@zcong/node-redis-cache": "^0.7.0",
+    "@zcong/node-redis-cache": "^0.7.2",
     "@zcong/singleflight": "^0.3.0",
     "debug": "^4.3.2",
     "lodash": "^4.17.21"
