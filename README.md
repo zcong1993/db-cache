@@ -1,9 +1,9 @@
-# typeorm-cache
+# db-cache
 
 [![NPM version](https://img.shields.io/npm/v/@zcong/db-cache.svg?style=flat)](https://npmjs.com/package/@zcong/db-cache)
 [![NPM downloads](https://img.shields.io/npm/dm/@zcong/db-cache.svg?style=flat)](https://npmjs.com/package/@zcong/db-cache)
-[![JS Test](https://github.com/zcong1993/typeorm-cache/actions/workflows/js-test.yml/badge.svg)](https://github.com/zcong1993/typeorm-cache/actions/workflows/js-test.yml)
-[![codecov](https://codecov.io/gh/zcong1993/typeorm-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/zcong1993/typeorm-cache)
+[![JS Test](https://github.com/zcong1993/db-cache/actions/workflows/js-test.yml/badge.svg)](https://github.com/zcong1993/db-cache/actions/workflows/js-test.yml)
+[![codecov](https://codecov.io/gh/zcong1993/db-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/zcong1993/db-cache)
 
 > like [go-zero cache](https://go-zero.dev/cn/redis-cache.html), but for NodeJS
 
