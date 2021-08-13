@@ -66,5 +66,11 @@
     "@zcong/singleflight": "^0.3.0",
     "debug": "^4.3.2",
     "lodash": "^4.17.21"
+  },
+  "bugs": "https://github.com/zcong1993/db-cache/issues",
+  "homepage": "https://github.com/zcong1993/db-cache",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zcong1993/db-cache.git"
   }
 }
