@@ -1,24 +1,24 @@
-import { createConnection, Connection } from 'typeorm'
 import Redis from 'ioredis'
+import { Sequelize } from 'sequelize-typescript'
 import { RedisCache } from '@zcong/node-redis-cache'
-import { DbCache, fixOption, Option, TypeormAdaptor } from '../src'
-import { MultiPrimaryTest, Student } from './model'
+import { DbCache, SequelizeTypescriptAdaptor } from '../src'
+import { Student } from './sequelizeModel'
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? 'mysql://root:root@localhost:3306/test'
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379/0'
 
-let conn: Connection
+let conn: Sequelize
 let redis: Redis.Redis
 
 beforeAll(async () => {
-  conn = await createConnection({
-    type: 'mysql',
-    url: DATABASE_URL,
-    entities: [Student, MultiPrimaryTest],
+  conn = new Sequelize(DATABASE_URL, {
+    repositoryMode: true,
+    models: [Student],
   })
+  await conn.authenticate()
 
-  await conn.synchronize()
+  await conn.sync()
 
   redis = new Redis(REDIS_URL)
 })
@@ -28,7 +28,7 @@ afterAll(async () => {
   redis.disconnect()
 }, 10000)
 
-const getRepository = (conn: Connection) => conn.getRepository(Student)
+const getRepository = (conn: Sequelize) => conn.getRepository(Student)
 
 const repeatCall = (n: number, fn: Function) =>
   Promise.all(
@@ -37,46 +37,38 @@ const repeatCall = (n: number, fn: Function) =>
       .map(() => fn())
   )
 
-const setupData = async (conn: Connection): Promise<Student> => {
+const setupData = async (conn: Sequelize): Promise<Student> => {
   const cardId = `card-${Date.now()}`
-  await getRepository(conn).insert({
+  await getRepository(conn).create({
     cardId,
     firstName: `firstName-${Date.now()}`,
     lastName: `lastName-${Date.now()}`,
     age: 18,
   })
 
-  return getRepository(conn).findOne({ cardId })
+  const r = await getRepository(conn).findOne({
+    where: { cardId },
+  })
+
+  return r.get({ plain: true })
 }
 
 beforeEach(async () => {
-  await getRepository(conn).clear()
+  await getRepository(conn).truncate()
   await redis.flushdb()
 })
 
-it('invalid primaryColumns length model', () => {
-  const cache = new RedisCache({ redis, prefix: 'typeorm' })
-
-  expect(
-    () =>
-      new DbCache(
-        new TypeormAdaptor(conn.getRepository(MultiPrimaryTest)),
-        cache,
-        {
-          expire: 50,
-          expiryDeviation: 0.04,
-        }
-      )
-  ).toThrow()
-})
-
 it('cacheFindByPk', async () => {
-  const cache = new RedisCache({ redis, prefix: 'typeorm' })
+  const cache = new RedisCache({ redis, prefix: 'sequelize' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 50,
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 50,
+      expiryDeviation: 0.04,
+    }
+  )
 
   await repeatCall(10, async () => {
     const resp = await cw.cacheFindByPk(expectRes.studentId)
@@ -92,11 +84,15 @@ it('cacheFindByPk', async () => {
 it('cacheFindByUniqueKey', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      expiryDeviation: 0.04,
+    }
+  )
 
   await repeatCall(10, async () => {
     const resp = await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
@@ -116,11 +112,15 @@ it('cacheFindByUniqueKey', async () => {
 it('cacheUpdateByPk', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      expiryDeviation: 0.04,
+    }
+  )
 
   // trigger cache
   await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
@@ -151,12 +151,16 @@ it('cacheUpdateByPk', async () => {
 it('deleteByPk', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    compositeFields: [['lastName', 'firstName']],
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      compositeFields: [['lastName', 'firstName']],
+      expiryDeviation: 0.04,
+    }
+  )
 
   // trigger cache
   await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
@@ -201,12 +205,16 @@ it('deleteByPk', async () => {
 it('deleteCache', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    compositeFields: [['lastName', 'firstName']],
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      compositeFields: [['lastName', 'firstName']],
+      expiryDeviation: 0.04,
+    }
+  )
 
   expect(await redis.dbsize()).toBe(0)
 
@@ -235,13 +243,17 @@ it('deleteCache', async () => {
 it('option.disable', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    compositeFields: [['firstName', 'lastName']],
-    expiryDeviation: 0.04,
-    disable: true,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      compositeFields: [['firstName', 'lastName']],
+      expiryDeviation: 0.04,
+      disable: true,
+    }
+  )
 
   expect(await cw.cacheFindByPk(expectRes.studentId)).toMatchObject(expectRes)
 
@@ -292,49 +304,33 @@ it('option.disable', async () => {
 
   await cw.deleteByPk(expectRes.studentId)
 
-  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeUndefined()
+  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeNull()
 
-  expect(
-    await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
-  ).toBeUndefined()
+  expect(await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)).toBeNull()
 
   expect(
     await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
       lastName: expectRes.lastName,
       firstName: expectRes.firstName,
     })
-  ).toBeUndefined()
+  ).toBeNull()
 
   await cw.deleteCache(expectRes)
-})
-
-it('fixOption', () => {
-  let o: Option<Student> = {
-    expire: 5,
-    uniqueFields: ['cardId'],
-  }
-
-  fixOption(o)
-  expect(o.expiryDeviation).toBe(0.05)
-
-  o.expiryDeviation = -1
-  fixOption(o)
-  expect(o.expiryDeviation).toBe(0)
-
-  o.expiryDeviation = 2
-  fixOption(o)
-  expect(o.expiryDeviation).toBe(1)
 })
 
 it('cacheFindByCompositeFields', async () => {
   const cache = new RedisCache({ redis, prefix: 'typeorm' })
   const expectRes = await setupData(conn)
-  const cw = new DbCache(new TypeormAdaptor(getRepository(conn)), cache, {
-    expire: 60,
-    uniqueFields: ['cardId'],
-    compositeFields: [['lastName', 'firstName']],
-    expiryDeviation: 0.04,
-  })
+  const cw = new DbCache(
+    new SequelizeTypescriptAdaptor(getRepository(conn)),
+    cache,
+    {
+      expire: 60,
+      uniqueFields: ['cardId'],
+      compositeFields: [['lastName', 'firstName']],
+      expiryDeviation: 0.04,
+    }
+  )
 
   await repeatCall(10, async () => {
     const resp = await cw.cacheFindByCompositeFields(

@@ -1,13 +1,11 @@
-import type { Repository } from 'typeorm'
 import debug from 'debug'
 import { Singleflight } from '@zcong/singleflight'
 import { Cacher } from '@zcong/node-redis-cache'
 import { aroundExpire, toString } from './utils'
+import { OrmAdaptor, PK } from './type'
 
 const cacheSafeGapBetweenIndexAndPrimary = 5
-const d = debug('typeorm-cache')
-
-type PK = string | number | Date
+const d = debug('db-cache')
 
 export interface Option<T> {
   expire: number
@@ -46,27 +44,24 @@ export function fixOption<T>(option: Option<T>) {
   }
 }
 
-export class TypeormCache<T> {
+export class DbCache<T> {
   private readonly sf = new Singleflight()
   private aroundExpire2: (expire: number) => number
   private pk: string
+  private tableName: string
   private compositeFieldsSet = new Set<string>()
 
   constructor(
-    private readonly repository: Repository<T>,
+    private readonly ormAdaptor: OrmAdaptor<T>,
     private readonly cache: Cacher,
     private option: Option<T>
   ) {
-    const primaryColumns = this.repository.metadata.primaryColumns
-    if (primaryColumns.length !== 1) {
-      throw new Error('not support primaryColumns.length !== 1')
-    }
-
-    this.pk = primaryColumns[0].propertyName
-
     fixOption(this.option)
     this.aroundExpire2 = (expire: number) =>
       aroundExpire(expire, option.expiryDeviation)
+
+    this.pk = this.ormAdaptor.pkColumnName()
+    this.tableName = this.ormAdaptor.tableName()
 
     for (const c of this.option.compositeFields) {
       // option.compositeFields is sorted after here
@@ -81,7 +76,7 @@ export class TypeormCache<T> {
    */
   async cacheFindByPk(id: PK) {
     if (this.option.disable) {
-      return this.repository.findOne(id)
+      return this.ormAdaptor.findOneByPk(id)
     }
 
     const key = this.buildKey(this.pk, id)
@@ -90,11 +85,11 @@ export class TypeormCache<T> {
       key,
       async () => {
         d(`cacheFindByPk call db, pk ${this.pk}: ${id}`)
-        return (await this.repository.findOne(id)) ?? null
+        return (await this.ormAdaptor.findOneByPk(id)) ?? null
       },
       this.aroundExpire2(this.option.expire),
       'json'
-    )
+    ) as Promise<T>
   }
 
   /**
@@ -110,14 +105,14 @@ export class TypeormCache<T> {
     }
 
     if (this.option.disable) {
-      return this.repository.findOne({ [field]: id })
+      return this.ormAdaptor.findOneByField(field, id)
     }
 
     const key = this.buildKey(field, id)
 
     return this.findBySubCache(
       key,
-      () => this.repository.findOne({ [field]: id }),
+      () => this.ormAdaptor.findOneByField(field, id),
       `field: ${field} id: ${id}`
     )
   }
@@ -130,14 +125,13 @@ export class TypeormCache<T> {
    */
   async cacheUpdateByPk(record: T) {
     if (this.option.disable) {
-      return this.repository.update(this.getPkVal(record), record)
+      await this.ormAdaptor.updateOneByPk(record)
+      return
     }
 
-    const resp = await this.repository.update(this.getPkVal(record), record)
+    await this.ormAdaptor.updateOneByPk(record)
     d(`cacheUpdateByPk update doc pk ${this.pk}: ${this.getPkVal(record)}`)
     this.deleteCache(record)
-
-    return resp
   }
 
   /**
@@ -148,20 +142,19 @@ export class TypeormCache<T> {
    */
   async deleteByPk(id: PK) {
     if (this.option.disable) {
-      return this.repository.delete(id)
+      await this.ormAdaptor.deleteOneByPk(id)
+      return
     }
 
-    const record = await this.repository.findOne(id)
+    const record = await this.cacheFindByPk(id)
     if (!record) {
       return
     }
 
-    const resp = await this.repository.delete(id)
+    await this.ormAdaptor.deleteOneByPk(id)
 
-    d(`deleteByPk delete doc pk ${this.pk}: ${this.getPkVal(record)}`)
-    await this.deleteCache(record)
-
-    return resp
+    d(`deleteByPk delete doc pk ${this.pk}: ${id}`)
+    await this.deleteCache(record as T)
   }
 
   /**
@@ -205,7 +198,7 @@ export class TypeormCache<T> {
     }
 
     if (this.option.disable) {
-      return this.repository.findOne(query)
+      return this.ormAdaptor.findoneByCompositeFields(fields, query)
     }
 
     const keys = this.buildCompositeKeys(fields, query)
@@ -213,7 +206,7 @@ export class TypeormCache<T> {
 
     return this.findBySubCache(
       key,
-      () => this.repository.findOne(query),
+      () => this.ormAdaptor.findoneByCompositeFields(fields, query),
       `fields: ${keys.toString()}`
     )
   }
@@ -279,7 +272,7 @@ export class TypeormCache<T> {
    * @returns
    */
   private buildKey(...args: any[]) {
-    return [this.repository.metadata.tableName, ...args].map(toString).join(':')
+    return [this.tableName, ...args].map(toString).join(':')
   }
 
   private normalizeCompositeFields(fields: (keyof T)[]) {
