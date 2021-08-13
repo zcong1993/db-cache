@@ -1,3 +1,17 @@
+# [0.4.0](https://github.com/zcong1993/db-cache/compare/v0.3.1...v0.4.0) (2021-08-13)
+
+### chore
+
+- rename package name ([e24486b](https://github.com/zcong1993/db-cache/commit/e24486b96485449affa3d8cc4d909af86262fc0e))
+
+### Features
+
+- support sequelize-typescript ([b26e4f6](https://github.com/zcong1993/db-cache/commit/b26e4f6c2338dabd83b6f46234287db48b1a8b6d))
+
+### BREAKING CHANGES
+
+- previous package @zcong/typeorm-cache will be deprecated
+
 ## [0.3.1](https://github.com/zcong1993/db-cache/compare/v0.3.0...v0.3.1) (2021-08-12)
 
 ### Bug Fixes
