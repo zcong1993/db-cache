@@ -1,3 +1,5 @@
+## [0.4.1](https://github.com/zcong1993/db-cache/compare/v0.4.0...v0.4.1) (2021-08-20)
+
 # [0.4.0](https://github.com/zcong1993/db-cache/compare/v0.3.1...v0.4.0) (2021-08-13)
 
 ### chore
