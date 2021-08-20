@@ -71,7 +71,7 @@ export class DbCache<T> {
 
   /**
    * find one by pk with cache
-   * @param id pk value
+   * @param id - pk value
    * @returns
    */
   async cacheFindByPk(id: PK) {
@@ -95,8 +95,8 @@ export class DbCache<T> {
   /**
    * find one by unique field with cache,
    * will throw if field not in option.uniqueFields
-   * @param field field name
-   * @param id field value
+   * @param field - field name
+   * @param id - field value
    * @returns
    */
   async cacheFindByUniqueKey<K extends keyof T>(field: K, id: T[K]) {
@@ -120,7 +120,7 @@ export class DbCache<T> {
   /**
    * update record by pk will clear record cache.
    * note: never update record base on cached data
-   * @param record record with full fields
+   * @param record - record with full fields
    * @returns
    */
   async cacheUpdateByPk(record: T) {
@@ -137,7 +137,7 @@ export class DbCache<T> {
   /**
    * delete record by pk, will clear record cache
    * note: this method call repository.delete so it is not soft delete
-   * @param id
+   * @param id - pk
    * @returns
    */
   async deleteByPk(id: PK) {
@@ -160,7 +160,7 @@ export class DbCache<T> {
   /**
    * clear record cache,
    * can be used before you update or delete record but not use TypeormCache's methods
-   * @param record record with full fields
+   * @param record - record with full fields
    * @returns
    */
   async deleteCache(record: T) {
@@ -267,9 +267,7 @@ export class DbCache<T> {
 
   /**
    * build redis cache key
-   * {cacherPrefix}:${tableName}:${columnNames}:${columnValues}
-   * @param args
-   * @returns
+   * \{cacherPrefix\}:$\{tableName\}:$\{columnNames\}:$\{columnValues\}
    */
   private buildKey(...args: any[]) {
     return [this.tableName, ...args].map(toString).join(':')
