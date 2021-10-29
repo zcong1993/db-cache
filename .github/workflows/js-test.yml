@@ -30,15 +30,16 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
       - uses: actions/setup-node@v2
         with:
           # registry-url: "https://registry.npmjs.org"
           node-version: 16
-          cache: 'yarn'
+          cache: pnpm
       - name: install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: run test
-        run: yarn test:cov
+        run: pnpm test:cov
       - uses: codecov/codecov-action@v2
-        # with:
-        #   token: ${{ secrets.CODECOV_TOKEN }}
