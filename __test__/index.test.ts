@@ -31,13 +31,6 @@ afterAll(async () => {
 
 const getRepository = (conn: DataSource) => conn.getRepository(Student)
 
-const a = async () => {
-  const user = await getRepository(conn).findOneBy({
-    firstName: 'xx',
-  })
-  await getRepository(conn).save(user)
-}
-
 const repeatCall = (n: number, fn: Function) =>
   Promise.all(
     Array(n)
