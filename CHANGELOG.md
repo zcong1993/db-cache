@@ -1,3 +1,13 @@
+# [0.5.0](https://github.com/zcong1993/db-cache/compare/v0.4.2...v0.5.0) (2022-03-19)
+
+### chore
+
+- **deps:** update dependency typeorm to ^0.3.0 ([#17](https://github.com/zcong1993/db-cache/issues/17)) ([007e49d](https://github.com/zcong1993/db-cache/commit/007e49dcfcbc74182a8f792cc5b7417049973d08))
+
+### BREAKING CHANGES
+
+- **deps:** follow typeorm^0.3.0 breaking change, so this version is for typeorm^0.3.0
+
 ## [0.4.2](https://github.com/zcong1993/db-cache/compare/v0.4.1...v0.4.2) (2021-10-29)
 
 ## [0.4.1](https://github.com/zcong1993/db-cache/compare/v0.4.0...v0.4.1) (2021-08-20)
