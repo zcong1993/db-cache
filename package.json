@@ -68,5 +68,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zcong1993/db-cache.git"
+  },
+  "peerDependencies": {
+    "typeorm": "^0.3.0"
   }
 }
