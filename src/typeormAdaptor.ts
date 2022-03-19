@@ -20,15 +20,17 @@ export class TypeormAdaptor<T> implements OrmAdaptor<T> {
   }
 
   async findOneByPk(pk: PK): Promise<T> {
-    return this.repository.findOne(pk)
+    return this.repository.findOneBy({
+      [this.pk]: pk,
+    } as any)
   }
 
   async findOneByField<K extends keyof T>(field: K, id: T[K]): Promise<T> {
-    return this.repository.findOne({ [field]: id })
+    return this.repository.findOneBy({ [field]: id } as any)
   }
 
   async updateOneByPk(record: T) {
-    return this.repository.save(record)
+    return this.repository.save(record as any)
   }
 
   async deleteOneByPk(pk: PK) {
@@ -39,6 +41,6 @@ export class TypeormAdaptor<T> implements OrmAdaptor<T> {
     fields: K,
     query: Required<Pick<T, K[number]>>
   ): Promise<T> {
-    return this.repository.findOne(query)
+    return this.repository.findOneBy(query as any)
   }
 }
