@@ -293,18 +293,16 @@ it('option.disable', async () => {
 
   await cw.deleteByPk(expectRes.studentId)
 
-  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeUndefined()
+  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeNull()
 
-  expect(
-    await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
-  ).toBeUndefined()
+  expect(await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)).toBeNull()
 
   expect(
     await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
       lastName: expectRes.lastName,
       firstName: expectRes.firstName,
     })
-  ).toBeUndefined()
+  ).toBeNull()
 
   await cw.deleteCache(expectRes)
 })
