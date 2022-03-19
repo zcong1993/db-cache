@@ -45,7 +45,7 @@
     "sequelize": "^6.8.0",
     "sequelize-typescript": "^2.1.1",
     "ts-jest": "^27.0.7",
-    "typeorm": "^0.2.38",
+    "typeorm": "^0.3.0",
     "typescript": "^4.4.4"
   },
   "jest": {
@@ -68,5 +68,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zcong1993/db-cache.git"
+  },
+  "peerDependencies": {
+    "typeorm": "^0.3.0"
   }
 }

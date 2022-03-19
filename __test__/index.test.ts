@@ -1,4 +1,4 @@
-import { createConnection, Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import Redis from 'ioredis'
 import { RedisCache } from '@zcong/node-redis-cache'
 import { DbCache, fixOption, Option, TypeormAdaptor } from '../src'
@@ -8,27 +8,28 @@ const DATABASE_URL =
   process.env.DATABASE_URL ?? 'mysql://root:root@localhost:3306/test'
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379/0'
 
-let conn: Connection
+let conn: DataSource
 let redis: Redis.Redis
 
 beforeAll(async () => {
-  conn = await createConnection({
+  conn = new DataSource({
     type: 'mysql',
     url: DATABASE_URL,
     entities: [Student, MultiPrimaryTest],
   })
 
+  await conn.initialize()
   await conn.synchronize()
 
   redis = new Redis(REDIS_URL)
 })
 
 afterAll(async () => {
-  await conn.close()
+  await conn.destroy()
   redis.disconnect()
 }, 10000)
 
-const getRepository = (conn: Connection) => conn.getRepository(Student)
+const getRepository = (conn: DataSource) => conn.getRepository(Student)
 
 const repeatCall = (n: number, fn: Function) =>
   Promise.all(
@@ -37,7 +38,7 @@ const repeatCall = (n: number, fn: Function) =>
       .map(() => fn())
   )
 
-const setupData = async (conn: Connection): Promise<Student> => {
+const setupData = async (conn: DataSource): Promise<Student> => {
   const cardId = `card-${Date.now()}`
   await getRepository(conn).insert({
     cardId,
@@ -46,7 +47,7 @@ const setupData = async (conn: Connection): Promise<Student> => {
     age: 18,
   })
 
-  return getRepository(conn).findOne({ cardId })
+  return getRepository(conn).findOneBy({ cardId })
 }
 
 beforeEach(async () => {
@@ -292,18 +293,16 @@ it('option.disable', async () => {
 
   await cw.deleteByPk(expectRes.studentId)
 
-  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeUndefined()
+  expect(await cw.cacheFindByPk(expectRes.studentId)).toBeNull()
 
-  expect(
-    await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)
-  ).toBeUndefined()
+  expect(await cw.cacheFindByUniqueKey('cardId', expectRes.cardId)).toBeNull()
 
   expect(
     await cw.cacheFindByCompositeFields(['lastName', 'firstName'], {
       lastName: expectRes.lastName,
       firstName: expectRes.firstName,
     })
-  ).toBeUndefined()
+  ).toBeNull()
 
   await cw.deleteCache(expectRes)
 })
