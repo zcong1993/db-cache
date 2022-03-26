@@ -45,7 +45,7 @@ export class SequelizeTypescriptAdaptor<T extends Model>
     query: Required<Pick<T, K[number]>>
   ): Promise<T> {
     return this.repository.findOne({
-      where: query,
+      where: query as any,
     })
   }
 }
