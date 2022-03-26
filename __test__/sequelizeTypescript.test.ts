@@ -15,6 +15,7 @@ beforeAll(async () => {
   conn = new Sequelize(DATABASE_URL, {
     repositoryMode: true,
     models: [Student],
+    logging: false,
   })
   await conn.authenticate()
 
