@@ -9,7 +9,7 @@ const DATABASE_URL =
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379/0'
 
 let conn: DataSource
-let redis: Redis.Redis
+let redis: Redis
 
 beforeAll(async () => {
   conn = new DataSource({
