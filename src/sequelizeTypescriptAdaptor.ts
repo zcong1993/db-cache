@@ -35,8 +35,8 @@ export class SequelizeTypescriptAdaptor<T extends Model>
   async deleteOneByPk(pk: PK) {
     return this.repository.destroy({
       where: {
-        [this.pkColumnName() as any]: pk,
-      },
+        [this.pkColumnName()]: pk,
+      } as any,
     })
   }
 
