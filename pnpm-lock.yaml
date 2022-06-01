@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@microsoft/api-extractor': ^7.23.0
   '@types/debug': ^4.1.7
-  '@types/jest': ^27.5.0
+  '@types/jest': ^28.0.0
   '@types/lodash': ^4.14.182
   '@types/node': ^17.0.31
   '@typescript-eslint/eslint-plugin': ^5.22.0
@@ -37,7 +37,7 @@ dependencies:
 devDependencies:
   '@microsoft/api-extractor': 7.23.0
   '@types/debug': 4.1.7
-  '@types/jest': 27.5.0
+  '@types/jest': 28.1.0
   '@types/lodash': 4.14.182
   '@types/node': 17.0.31
   '@typescript-eslint/eslint-plugin': 5.22.0_lnjlwhtxjffjmj5o7dnwvwyqxq
@@ -54,7 +54,7 @@ devDependencies:
   prettier: 2.6.2
   sequelize: 6.19.0_mysql2@2.3.3
   sequelize-typescript: 2.1.3_nmnzvnsnkbpo3pmq2vxbvtd3bi
-  ts-jest: 28.0.0_jw4qpfj6m43htbnoqw2i363564
+  ts-jest: 28.0.0_jsb4jey2n4vdyqgoevzjjg3pqi
   typeorm: 0.3.6_ioredis@5.0.4+mysql2@2.3.3
   typescript: 4.6.4
 
@@ -869,8 +869,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/27.5.0:
-    resolution: {integrity: sha512-9RBFx7r4k+msyj/arpfaa0WOOEcaAZNmN+j80KFbFCoSqCJGHTz7YMAMGQW9Xmqm5w6l5c25vbSjMwlikJi5+g==}
+  /@types/jest/28.1.0:
+    resolution: {integrity: sha512-ITfF6JJIl9zbEi2k6NmhNE/BiDqfsI/ceqfvdaWaPbcrCpYyyRq4KtDQIWh6vQUru6SqwppODiom/Zhid+np6A==}
     dependencies:
       jest-matcher-utils: 27.3.1
       pretty-format: 27.3.1
@@ -4673,7 +4673,7 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-jest/28.0.0_jw4qpfj6m43htbnoqw2i363564:
+  /ts-jest/28.0.0_jsb4jey2n4vdyqgoevzjjg3pqi:
     resolution: {integrity: sha512-JOUGExRO4vNaQdc920/sJjFZxe9lBGa6WIuNWkvtZoORGI9dyHTBqhuaJUdBVWIfqj+vaK3TRt/B1T0hQ0ROaA==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.13.0 || >=17.0.0}
     hasBin: true
@@ -4694,7 +4694,7 @@ packages:
       esbuild:
         optional: true
     dependencies:
-      '@types/jest': 27.5.0
+      '@types/jest': 28.1.0
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       jest: 28.0.3_@types+node@17.0.31
