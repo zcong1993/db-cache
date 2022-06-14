@@ -47,7 +47,7 @@ const setupData = async (conn: DataSource): Promise<Student> => {
     age: 18,
   })
 
-  return getRepository(conn).findOneBy({ cardId })
+  return (await getRepository(conn).findOneBy({ cardId }))!
 }
 
 beforeEach(async () => {

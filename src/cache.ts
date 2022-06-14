@@ -113,7 +113,7 @@ export class DbCache<T> {
     return this.findBySubCache(
       key,
       () => this.ormAdaptor.findOneByField(field, id),
-      `field: ${field} id: ${id}`
+      `field: ${field as string} id: ${id}`
     )
   }
 

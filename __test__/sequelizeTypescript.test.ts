@@ -51,7 +51,7 @@ const setupData = async (conn: Sequelize): Promise<Student> => {
     where: { cardId },
   })
 
-  return r.get({ plain: true })
+  return r!.get({ plain: true })
 }
 
 beforeEach(async () => {
