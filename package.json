@@ -1,6 +1,6 @@
 {
   "name": "@zcong/db-cache",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "like go-zero cache, but for NodeJS",
   "main": "./dist/index.js",
   "files": [
